@@ -2,6 +2,7 @@
 #define EXCLUSIVE_HANDLE_H
 
 #include <functional>
+#include <stdexcept>
 #include <utility>
 #include <cstddef>
 
@@ -18,7 +19,10 @@ public:
     ~ExclusiveHandle() { reset(); }
 
     ExclusiveHandle(const ExclusiveHandle &o) : ptr_(nullptr), clone_(o.clone_) {
-        if (o.ptr_ && clone_) {
+        if (o.ptr_) {
+            if (!clone_) {
+                throw std::logic_error("owned resource cannot be copied without a clone function");
+            }
             ptr_ = clone_(o.ptr_);
         }
     }

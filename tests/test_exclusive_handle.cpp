@@ -1,6 +1,7 @@
 #include <cassert>
 #include <iostream>
 #include <cstring>
+#include <stdexcept>
 #include "exclusive_handle.h"
 
 struct Payload {
@@ -146,11 +147,18 @@ static void test_swap_exchanges() {
     std::cout << "  PASS: swap exchanges handles\n";
 }
 
-static void test_copy_without_clone_is_null() {
+static void test_copy_without_clone_is_rejected() {
     ExclusiveHandle<Payload> a(new Payload("data"));
-    ExclusiveHandle<Payload> b(a);
-    assert(!b);
-    std::cout << "  PASS: copy without clone function yields null\n";
+    bool threw = false;
+    try {
+        ExclusiveHandle<Payload> b(a);
+    } catch (const std::logic_error &) {
+        threw = true;
+    }
+    assert(threw);
+    assert(a);
+    assert(std::strcmp(a->data, "data") == 0);
+    std::cout << "  PASS: copy without clone function is rejected\n";
 }
 
 int main() {
@@ -168,7 +176,7 @@ int main() {
     test_self_reset_is_safe();
     test_release_then_reset_owns_replacement();
     test_swap_exchanges();
-    test_copy_without_clone_is_null();
+    test_copy_without_clone_is_rejected();
     std::cout << "All ExclusiveHandle tests passed.\n";
     return 0;
 }
