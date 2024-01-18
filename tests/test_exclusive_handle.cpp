@@ -22,6 +22,10 @@ struct Payload {
     }
 };
 
+static Payload *throwing_clone(const Payload *) {
+    throw std::runtime_error("clone failed");
+}
+
 static void test_default_is_null() {
     ExclusiveHandle<Payload> h;
     assert(!h);
@@ -161,6 +165,23 @@ static void test_copy_without_clone_is_rejected() {
     std::cout << "  PASS: copy without clone function is rejected\n";
 }
 
+static void test_failed_copy_assignment_preserves_destination() {
+    ExclusiveHandle<Payload> source(new Payload("source"), throwing_clone);
+    ExclusiveHandle<Payload> destination(new Payload("destination"), Payload::clone);
+
+    bool threw = false;
+    try {
+        destination = source;
+    } catch (const std::runtime_error &) {
+        threw = true;
+    }
+
+    assert(threw);
+    assert(std::strcmp(source->data, "source") == 0);
+    assert(std::strcmp(destination->data, "destination") == 0);
+    std::cout << "  PASS: failed clone preserves copy-assignment destination\n";
+}
+
 int main() {
     std::cout << "ExclusiveHandle tests:\n";
     test_default_is_null();
@@ -177,6 +198,7 @@ int main() {
     test_release_then_reset_owns_replacement();
     test_swap_exchanges();
     test_copy_without_clone_is_rejected();
+    test_failed_copy_assignment_preserves_destination();
     std::cout << "All ExclusiveHandle tests passed.\n";
     return 0;
 }
