@@ -26,6 +26,10 @@ static Payload *throwing_clone(const Payload *) {
     throw std::runtime_error("clone failed");
 }
 
+static Payload *null_clone(const Payload *) {
+    return nullptr;
+}
+
 static void test_default_is_null() {
     ExclusiveHandle<Payload> h;
     assert(!h);
@@ -182,6 +186,20 @@ static void test_failed_copy_assignment_preserves_destination() {
     std::cout << "  PASS: failed clone preserves copy-assignment destination\n";
 }
 
+static void test_null_clone_result_is_rejected() {
+    ExclusiveHandle<Payload> source(new Payload("source"), null_clone);
+    bool threw = false;
+    try {
+        ExclusiveHandle<Payload> copy(source);
+    } catch (const std::runtime_error &) {
+        threw = true;
+    }
+    assert(threw);
+    assert(source);
+    assert(std::strcmp(source->data, "source") == 0);
+    std::cout << "  PASS: null clone result is rejected\n";
+}
+
 int main() {
     std::cout << "ExclusiveHandle tests:\n";
     test_default_is_null();
@@ -199,6 +217,7 @@ int main() {
     test_swap_exchanges();
     test_copy_without_clone_is_rejected();
     test_failed_copy_assignment_preserves_destination();
+    test_null_clone_result_is_rejected();
     std::cout << "All ExclusiveHandle tests passed.\n";
     return 0;
 }

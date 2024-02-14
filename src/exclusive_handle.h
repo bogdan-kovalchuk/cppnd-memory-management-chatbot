@@ -24,6 +24,9 @@ public:
                 throw std::logic_error("owned resource cannot be copied without a clone function");
             }
             ptr_ = clone_(o.ptr_);
+            if (!ptr_) {
+                throw std::runtime_error("clone function returned null for an owned resource");
+            }
         }
     }
 
