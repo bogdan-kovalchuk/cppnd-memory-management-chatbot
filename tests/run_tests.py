@@ -8,6 +8,7 @@ import tempfile
 
 
 TEST_TARGETS = {
+    "answer_graph_parser": ["test_answer_graph_parser.cpp", "../src/answer_graph_parser.cpp"],
     "ownership_characterization": [
         "test_ownership_characterization.cpp", "levenshtein.cpp"
     ],

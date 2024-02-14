@@ -14,6 +14,13 @@ endif()
 
 enable_testing()
 
+add_executable(test_answer_graph_parser
+    test_answer_graph_parser.cpp
+    ../src/answer_graph_parser.cpp
+)
+target_include_directories(test_answer_graph_parser PRIVATE ${CMAKE_SOURCE_DIR}/../src)
+add_test(NAME answer_graph_parser COMMAND test_answer_graph_parser)
+
 add_executable(test_ownership_characterization
     test_ownership_characterization.cpp
     levenshtein.cpp
