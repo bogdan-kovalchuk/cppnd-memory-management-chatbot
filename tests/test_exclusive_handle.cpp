@@ -30,6 +30,24 @@ static Payload *null_clone(const Payload *) {
     return nullptr;
 }
 
+struct TrackedPayload {
+    static int alive;
+    static int clones;
+
+    int value;
+
+    explicit TrackedPayload(int value) : value(value) { ++alive; }
+    ~TrackedPayload() { --alive; }
+
+    static TrackedPayload *clone(const TrackedPayload *payload) {
+        ++clones;
+        return new TrackedPayload(payload->value);
+    }
+};
+
+int TrackedPayload::alive = 0;
+int TrackedPayload::clones = 0;
+
 static void test_default_is_null() {
     ExclusiveHandle<Payload> h;
     assert(!h);
@@ -200,6 +218,30 @@ static void test_null_clone_result_is_rejected() {
     std::cout << "  PASS: null clone result is rejected\n";
 }
 
+static void test_lifetime_balance_across_copy_move_reset_and_release() {
+    TrackedPayload::alive = 0;
+    TrackedPayload::clones = 0;
+    {
+        ExclusiveHandle<TrackedPayload> first(
+            new TrackedPayload(1), TrackedPayload::clone
+        );
+        ExclusiveHandle<TrackedPayload> copied(first);
+        ExclusiveHandle<TrackedPayload> moved(std::move(first));
+        assert(TrackedPayload::alive == 2);
+        assert(TrackedPayload::clones == 1);
+
+        copied.reset(new TrackedPayload(2));
+        assert(TrackedPayload::alive == 2);
+
+        TrackedPayload *released = moved.release();
+        assert(TrackedPayload::alive == 2);
+        delete released;
+        assert(TrackedPayload::alive == 1);
+    }
+    assert(TrackedPayload::alive == 0);
+    std::cout << "  PASS: copy, move, reset, and release balance lifetimes\n";
+}
+
 int main() {
     std::cout << "ExclusiveHandle tests:\n";
     test_default_is_null();
@@ -218,6 +260,7 @@ int main() {
     test_copy_without_clone_is_rejected();
     test_failed_copy_assignment_preserves_destination();
     test_null_clone_result_is_rejected();
+    test_lifetime_balance_across_copy_move_reset_and_release();
     std::cout << "All ExclusiveHandle tests passed.\n";
     return 0;
 }
