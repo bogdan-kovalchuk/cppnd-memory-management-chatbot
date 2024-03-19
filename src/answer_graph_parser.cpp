@@ -1,6 +1,7 @@
 #include "answer_graph_parser.h"
 
 #include <charconv>
+#include <cctype>
 #include <optional>
 #include <utility>
 
@@ -19,18 +20,48 @@ std::optional<int> ParseInteger(const std::string &text)
     return value;
 }
 
-std::vector<Token> ParseTokens(const std::string &line)
+bool ContainsNonWhitespace(const std::string &text)
+{
+    for (const unsigned char character : text)
+    {
+        if (!std::isspace(character))
+            return true;
+    }
+    return false;
+}
+
+std::vector<Token> ParseTokens(
+    const std::string &line,
+    std::size_t lineNumber,
+    AnswerGraphParseResult &result,
+    bool &wellFormed
+)
 {
     std::vector<Token> tokens;
+    wellFormed = true;
     std::size_t cursor = 0;
     while (true)
     {
         const std::size_t front = line.find('<', cursor);
         if (front == std::string::npos)
+        {
+            const std::string remainder = line.substr(cursor);
+            if (tokens.empty() && ContainsNonWhitespace(remainder)
+                && remainder.find("//") != 0)
+            {
+                result.issues.push_back(
+                    {lineNumber, "line contains text but no answer-graph tokens"}
+                );
+            }
             break;
+        }
         const std::size_t back = line.find('>', front + 1);
         if (back == std::string::npos)
+        {
+            result.issues.push_back({lineNumber, "token is missing closing '>'"});
+            wellFormed = false;
             break;
+        }
         const std::string token = line.substr(front + 1, back - front - 1);
         const std::size_t separator = token.find(':');
         if (separator != std::string::npos)
@@ -38,6 +69,11 @@ std::vector<Token> ParseTokens(const std::string &line)
             tokens.emplace_back(
                 token.substr(0, separator), token.substr(separator + 1)
             );
+        }
+        else
+        {
+            result.issues.push_back({lineNumber, "token is missing ':'"});
+            wellFormed = false;
         }
         cursor = back + 1;
     }
@@ -63,10 +99,18 @@ AnswerGraphParseResult ParseAnswerGraph(std::istream &input)
     while (std::getline(input, line))
     {
         ++lineNumber;
-        const std::vector<Token> tokens = ParseTokens(line);
+        bool tokensWellFormed = false;
+        const std::vector<Token> tokens = ParseTokens(
+            line, lineNumber, result, tokensWellFormed
+        );
+        if (tokens.empty() || !tokensWellFormed)
+            continue;
         const std::string *type = FindToken(tokens, "TYPE");
         if (!type)
+        {
+            result.issues.push_back({lineNumber, "record is missing TYPE"});
             continue;
+        }
         if (*type == "NODE")
         {
             const std::string *idText = FindToken(tokens, "ID");
@@ -107,6 +151,10 @@ AnswerGraphParseResult ParseAnswerGraph(std::istream &input)
                     edge.keywords.push_back(token.second);
             }
             result.edges.push_back(std::move(edge));
+        }
+        else
+        {
+            result.issues.push_back({lineNumber, "unsupported TYPE: " + *type});
         }
     }
     return result;

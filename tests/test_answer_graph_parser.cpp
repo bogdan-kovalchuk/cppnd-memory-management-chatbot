@@ -44,11 +44,39 @@ static void test_parses_edge_relationships_and_keywords()
     std::cout << "  PASS: edge records preserve endpoints and keywords\n";
 }
 
+static void test_reports_malformed_records_with_line_numbers()
+{
+    std::istringstream input(
+        "plain text\n"
+        "<TYPE:NODE><ID:not-a-number>\n"
+        "<TYPE:EDGE><ID:1><PARENT:x><CHILD:2>\n"
+        "<TYPE:NODE><ID:4\n"
+        "<ID:5>\n"
+        "<TYPE:OTHER><ID:6>\n"
+    );
+
+    const AnswerGraphParseResult result = ParseAnswerGraph(input);
+
+    assert(result.nodes.empty());
+    assert(result.edges.empty());
+    assert(result.issues.size() == 6);
+    for (std::size_t index = 0; index < result.issues.size(); ++index)
+        assert(result.issues[index].line == index + 1);
+    assert(result.issues[0].message.find("no answer-graph tokens") != std::string::npos);
+    assert(result.issues[1].message.find("integer ID") != std::string::npos);
+    assert(result.issues[2].message.find("integer ID, PARENT, and CHILD") != std::string::npos);
+    assert(result.issues[3].message.find("closing") != std::string::npos);
+    assert(result.issues[4].message.find("missing TYPE") != std::string::npos);
+    assert(result.issues[5].message.find("unsupported TYPE") != std::string::npos);
+    std::cout << "  PASS: malformed records include actionable line diagnostics\n";
+}
+
 int main()
 {
     std::cout << "Answer graph parser tests:\n";
     test_parses_node_answers();
     test_parses_edge_relationships_and_keywords();
+    test_reports_malformed_records_with_line_numbers();
     std::cout << "All answer graph parser tests passed.\n";
     return 0;
 }
