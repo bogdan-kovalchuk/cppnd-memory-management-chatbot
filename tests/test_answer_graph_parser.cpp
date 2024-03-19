@@ -24,10 +24,31 @@ static void test_parses_node_answers()
     std::cout << "  PASS: node records preserve IDs and answers\n";
 }
 
+static void test_parses_edge_relationships_and_keywords()
+{
+    std::istringstream input(
+        "<TYPE:EDGE><ID:12><PARENT:7><CHILD:9>"
+        "<KEYWORD:memory><KEYWORD:ownership>\n"
+    );
+
+    const AnswerGraphParseResult result = ParseAnswerGraph(input);
+
+    assert(result.issues.empty());
+    assert(result.edges.size() == 1);
+    assert(result.edges[0].id == 12);
+    assert(result.edges[0].parentId == 7);
+    assert(result.edges[0].childId == 9);
+    assert(result.edges[0].keywords.size() == 2);
+    assert(result.edges[0].keywords[0] == "memory");
+    assert(result.edges[0].keywords[1] == "ownership");
+    std::cout << "  PASS: edge records preserve endpoints and keywords\n";
+}
+
 int main()
 {
     std::cout << "Answer graph parser tests:\n";
     test_parses_node_answers();
+    test_parses_edge_relationships_and_keywords();
     std::cout << "All answer graph parser tests passed.\n";
     return 0;
 }

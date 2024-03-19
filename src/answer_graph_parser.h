@@ -11,6 +11,14 @@ struct ParsedAnswerNode
     std::vector<std::string> answers;
 };
 
+struct ParsedAnswerEdge
+{
+    int id;
+    int parentId;
+    int childId;
+    std::vector<std::string> keywords;
+};
+
 struct AnswerGraphParseIssue
 {
     std::size_t line;
@@ -20,6 +28,7 @@ struct AnswerGraphParseIssue
 struct AnswerGraphParseResult
 {
     std::vector<ParsedAnswerNode> nodes;
+    std::vector<ParsedAnswerEdge> edges;
     std::vector<AnswerGraphParseIssue> issues;
 };
 

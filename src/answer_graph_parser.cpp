@@ -65,23 +65,49 @@ AnswerGraphParseResult ParseAnswerGraph(std::istream &input)
         ++lineNumber;
         const std::vector<Token> tokens = ParseTokens(line);
         const std::string *type = FindToken(tokens, "TYPE");
-        if (!type || *type != "NODE")
+        if (!type)
             continue;
-        const std::string *idText = FindToken(tokens, "ID");
-        const std::optional<int> id = idText ? ParseInteger(*idText) : std::nullopt;
-        if (!id)
+        if (*type == "NODE")
         {
-            result.issues.push_back({lineNumber, "NODE requires an integer ID"});
-            continue;
-        }
+            const std::string *idText = FindToken(tokens, "ID");
+            const std::optional<int> id = idText ? ParseInteger(*idText) : std::nullopt;
+            if (!id)
+            {
+                result.issues.push_back({lineNumber, "NODE requires an integer ID"});
+                continue;
+            }
 
-        ParsedAnswerNode node{*id, {}};
-        for (const auto &token : tokens)
-        {
-            if (token.first == "ANSWER")
-                node.answers.push_back(token.second);
+            ParsedAnswerNode node{*id, {}};
+            for (const auto &token : tokens)
+            {
+                if (token.first == "ANSWER")
+                    node.answers.push_back(token.second);
+            }
+            result.nodes.push_back(std::move(node));
         }
-        result.nodes.push_back(std::move(node));
+        else if (*type == "EDGE")
+        {
+            const std::string *idText = FindToken(tokens, "ID");
+            const std::string *parentText = FindToken(tokens, "PARENT");
+            const std::string *childText = FindToken(tokens, "CHILD");
+            const std::optional<int> id = idText ? ParseInteger(*idText) : std::nullopt;
+            const std::optional<int> parent = parentText ? ParseInteger(*parentText) : std::nullopt;
+            const std::optional<int> child = childText ? ParseInteger(*childText) : std::nullopt;
+            if (!id || !parent || !child)
+            {
+                result.issues.push_back(
+                    {lineNumber, "EDGE requires integer ID, PARENT, and CHILD values"}
+                );
+                continue;
+            }
+            ParsedAnswerEdge edge{*id, *parent, *child, {}};
+            for (const auto &token : tokens)
+            {
+                if (token.first == "KEYWORD")
+                    edge.keywords.push_back(token.second);
+            }
+            result.edges.push_back(std::move(edge));
+        }
     }
     return result;
 }
