@@ -3,6 +3,7 @@
 #include <charconv>
 #include <cctype>
 #include <optional>
+#include <unordered_set>
 #include <utility>
 
 namespace
@@ -96,6 +97,8 @@ AnswerGraphParseResult ParseAnswerGraph(std::istream &input)
     AnswerGraphParseResult result;
     std::string line;
     std::size_t lineNumber = 0;
+    std::unordered_set<int> nodeIds;
+    std::unordered_set<int> edgeIds;
     while (std::getline(input, line))
     {
         ++lineNumber;
@@ -120,6 +123,11 @@ AnswerGraphParseResult ParseAnswerGraph(std::istream &input)
                 result.issues.push_back({lineNumber, "NODE requires an integer ID"});
                 continue;
             }
+            if (!nodeIds.insert(*id).second)
+            {
+                result.issues.push_back({lineNumber, "duplicate NODE ID"});
+                continue;
+            }
 
             ParsedAnswerNode node{*id, {}};
             for (const auto &token : tokens)
@@ -142,6 +150,11 @@ AnswerGraphParseResult ParseAnswerGraph(std::istream &input)
                 result.issues.push_back(
                     {lineNumber, "EDGE requires integer ID, PARENT, and CHILD values"}
                 );
+                continue;
+            }
+            if (!edgeIds.insert(*id).second)
+            {
+                result.issues.push_back({lineNumber, "duplicate EDGE ID"});
                 continue;
             }
             ParsedAnswerEdge edge{*id, *parent, *child, {}};

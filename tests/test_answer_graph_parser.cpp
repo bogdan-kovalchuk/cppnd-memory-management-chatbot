@@ -71,12 +71,36 @@ static void test_reports_malformed_records_with_line_numbers()
     std::cout << "  PASS: malformed records include actionable line diagnostics\n";
 }
 
+static void test_rejects_duplicate_node_and_edge_ids()
+{
+    std::istringstream input(
+        "<TYPE:NODE><ID:1><ANSWER:first>\n"
+        "<TYPE:NODE><ID:1><ANSWER:duplicate>\n"
+        "<TYPE:EDGE><ID:10><PARENT:1><CHILD:1><KEYWORD:first>\n"
+        "<TYPE:EDGE><ID:10><PARENT:1><CHILD:1><KEYWORD:duplicate>\n"
+    );
+
+    const AnswerGraphParseResult result = ParseAnswerGraph(input);
+
+    assert(result.nodes.size() == 1);
+    assert(result.nodes[0].answers[0] == "first");
+    assert(result.edges.size() == 1);
+    assert(result.edges[0].keywords[0] == "first");
+    assert(result.issues.size() == 2);
+    assert(result.issues[0].line == 2);
+    assert(result.issues[0].message == "duplicate NODE ID");
+    assert(result.issues[1].line == 4);
+    assert(result.issues[1].message == "duplicate EDGE ID");
+    std::cout << "  PASS: duplicate IDs are diagnosed and skipped\n";
+}
+
 int main()
 {
     std::cout << "Answer graph parser tests:\n";
     test_parses_node_answers();
     test_parses_edge_relationships_and_keywords();
     test_reports_malformed_records_with_line_numbers();
+    test_rejects_duplicate_node_and_edge_ids();
     std::cout << "All answer graph parser tests passed.\n";
     return 0;
 }
