@@ -59,3 +59,8 @@ add_executable(test_graphnode_move_comparison
     test_graphnode_move_comparison.cpp
 )
 add_test(NAME graphnode_move_comparison COMMAND test_graphnode_move_comparison)
+
+add_executable(test_chatlogic_lifecycle
+    test_chatlogic_lifecycle.cpp
+)
+add_test(NAME chatlogic_lifecycle COMMAND test_chatlogic_lifecycle)
