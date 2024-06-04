@@ -45,6 +45,18 @@ add_executable(test_chatbot_integration
 target_include_directories(test_chatbot_integration PRIVATE ${CMAKE_SOURCE_DIR}/../src)
 add_test(NAME chatbot_integration COMMAND test_chatbot_integration)
 
+add_executable(test_chatbot_copy_constructor
+    test_chatbot_copy_constructor.cpp
+    ../src/chatbot.cpp
+    ../src/graphnode.cpp
+    ../src/graphedge.cpp
+)
+target_include_directories(test_chatbot_copy_constructor PRIVATE
+    ${CMAKE_SOURCE_DIR}/../src
+    ${CMAKE_SOURCE_DIR}/support
+)
+add_test(NAME chatbot_copy_constructor COMMAND test_chatbot_copy_constructor)
+
 add_executable(test_graphnode_move
     test_graphnode_move.cpp
 )
