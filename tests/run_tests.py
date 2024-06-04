@@ -19,6 +19,7 @@ TEST_TARGETS = {
     "graphnode_move_edge_cases": ["test_graphnode_move_edge_cases.cpp"],
     "graphnode_move_comparison": ["test_graphnode_move_comparison.cpp"],
     "chatlogic_lifecycle": ["test_chatlogic_lifecycle.cpp"],
+    "ownership_chain_integration": ["test_ownership_chain_integration.cpp"],
 }
 
 

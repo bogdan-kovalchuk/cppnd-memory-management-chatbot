@@ -64,3 +64,8 @@ add_executable(test_chatlogic_lifecycle
     test_chatlogic_lifecycle.cpp
 )
 add_test(NAME chatlogic_lifecycle COMMAND test_chatlogic_lifecycle)
+
+add_executable(test_ownership_chain_integration
+    test_ownership_chain_integration.cpp
+)
+add_test(NAME ownership_chain_integration COMMAND test_ownership_chain_integration)
