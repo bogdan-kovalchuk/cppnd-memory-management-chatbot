@@ -27,6 +27,12 @@ TEST_TARGETS = {
         "../src/graphnode.cpp",
         "../src/graphedge.cpp",
     ],
+    "chatbot_copy_assignment": [
+        "test_chatbot_copy_assignment.cpp",
+        "../src/chatbot.cpp",
+        "../src/graphnode.cpp",
+        "../src/graphedge.cpp",
+    ],
     "graphnode_move": ["test_graphnode_move.cpp"],
     "graphnode_move_edge_cases": ["test_graphnode_move_edge_cases.cpp"],
     "graphnode_move_comparison": ["test_graphnode_move_comparison.cpp"],
