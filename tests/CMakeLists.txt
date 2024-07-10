@@ -81,6 +81,18 @@ target_include_directories(test_chatbot_copy_assignment PRIVATE
 )
 add_test(NAME chatbot_copy_assignment COMMAND test_chatbot_copy_assignment)
 
+add_executable(test_chatbot_move_assignment
+    test_chatbot_move_assignment.cpp
+    ../src/chatbot.cpp
+    ../src/graphnode.cpp
+    ../src/graphedge.cpp
+)
+target_include_directories(test_chatbot_move_assignment PRIVATE
+    ${CMAKE_SOURCE_DIR}/../src
+    ${CMAKE_SOURCE_DIR}/support
+)
+add_test(NAME chatbot_move_assignment COMMAND test_chatbot_move_assignment)
+
 add_executable(test_graphnode_move
     test_graphnode_move.cpp
 )
