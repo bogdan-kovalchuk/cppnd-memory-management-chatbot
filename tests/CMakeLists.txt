@@ -93,6 +93,19 @@ target_include_directories(test_chatbot_move_assignment PRIVATE
 )
 add_test(NAME chatbot_move_assignment COMMAND test_chatbot_move_assignment)
 
+add_executable(test_graph_ownership_lifecycle
+    test_graph_ownership_lifecycle.cpp
+    ../src/chatlogic.cpp
+    ../src/chatbot.cpp
+    ../src/graphnode.cpp
+    ../src/graphedge.cpp
+)
+target_include_directories(test_graph_ownership_lifecycle PRIVATE
+    ${CMAKE_SOURCE_DIR}/../src
+    ${CMAKE_SOURCE_DIR}/support
+)
+add_test(NAME graph_ownership_lifecycle COMMAND test_graph_ownership_lifecycle)
+
 add_executable(test_graphnode_move
     test_graphnode_move.cpp
 )
