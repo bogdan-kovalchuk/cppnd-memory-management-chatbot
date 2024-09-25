@@ -94,6 +94,26 @@ static void test_rejects_duplicate_node_and_edge_ids()
     std::cout << "  PASS: duplicate IDs are diagnosed and skipped\n";
 }
 
+static void test_rejects_text_outside_tokens()
+{
+    std::istringstream input(
+        "<TYPE:NODE><ID:1><ANSWER:first> unexpected\n"
+        "unexpected <TYPE:NODE><ID:2>\n"
+        "<TYPE:NODE><ID:3> // permitted comment\n"
+    );
+
+    const AnswerGraphParseResult result = ParseAnswerGraph(input);
+
+    assert(result.nodes.size() == 1);
+    assert(result.nodes[0].id == 3);
+    assert(result.issues.size() == 2);
+    assert(result.issues[0].line == 1);
+    assert(result.issues[0].message == "line contains text outside answer-graph tokens");
+    assert(result.issues[1].line == 2);
+    assert(result.issues[1].message == "line contains text outside answer-graph tokens");
+    std::cout << "  PASS: text outside tokens is rejected without rejecting comments\n";
+}
+
 int main()
 {
     std::cout << "Answer graph parser tests:\n";
@@ -101,6 +121,7 @@ int main()
     test_parses_edge_relationships_and_keywords();
     test_reports_malformed_records_with_line_numbers();
     test_rejects_duplicate_node_and_edge_ids();
+    test_rejects_text_outside_tokens();
     std::cout << "All answer graph parser tests passed.\n";
     return 0;
 }

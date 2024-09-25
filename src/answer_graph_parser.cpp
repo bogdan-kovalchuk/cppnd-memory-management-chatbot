@@ -31,6 +31,12 @@ bool ContainsNonWhitespace(const std::string &text)
     return false;
 }
 
+bool ContainsUnexpectedText(const std::string &text)
+{
+    const std::size_t comment = text.find("//");
+    return ContainsNonWhitespace(text.substr(0, comment));
+}
+
 std::vector<Token> ParseTokens(
     const std::string &line,
     std::size_t lineNumber,
@@ -54,6 +60,21 @@ std::vector<Token> ParseTokens(
                     {lineNumber, "line contains text but no answer-graph tokens"}
                 );
             }
+            else if (!tokens.empty() && ContainsUnexpectedText(remainder))
+            {
+                result.issues.push_back(
+                    {lineNumber, "line contains text outside answer-graph tokens"}
+                );
+                wellFormed = false;
+            }
+            break;
+        }
+        if (ContainsUnexpectedText(line.substr(cursor, front - cursor)))
+        {
+            result.issues.push_back(
+                {lineNumber, "line contains text outside answer-graph tokens"}
+            );
+            wellFormed = false;
             break;
         }
         const std::size_t back = line.find('>', front + 1);
